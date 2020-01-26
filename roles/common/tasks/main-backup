@@ -1,0 +1,49 @@
+# We are using Ubuntu Xenial.  You can probably use a newer version but have not tested that here.
+# Delegate to server name must match name in hosts file and under the start a new container section below.
+# When copying files from a directory like below, you must update the path depending where you downloaded the folder.
+
+
+---
+
+- name: Create a started container
+  lxd_container:
+    name: newserver
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://images.linuxcontainers.org
+      protocol: lxd
+      alias: ubuntu/xenial/amd64
+    profiles: ["default"]
+    wait_for_ipv4_addresses: true
+    timeout: 600
+
+- name: install nginx
+  delegate_to: newserver
+  raw: apt install nginx -y
+
+- name: install python
+  delegate_to: newserver
+  raw: apt install python -y
+
+- name: install zip
+  delegate_to: newserver
+  raw: apt install zip -y
+
+- name: copy files
+  delegate_to: newserver
+  copy:
+    src: /etc/ansible/lxd-nginx-boot-v3/web.zip
+    dest: /var/www/
+
+- name: unzip
+  delegate_to: newserver
+  unarchive:
+    src: /var/www/web.zip
+    dest: /var/www/
+    remote_src: yes
+
+- name: move files
+  delegate_to: newserver
+  raw: cp -r /var/www/web/. /var/www/html

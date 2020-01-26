@@ -1,0 +1,12 @@
+---
+
+- name: create lxd container and install nginx and bootstrap landing page.
+
+  hosts: localhost
+  connection: local
+ #  become: yes
+  remote_user: root
+  
+  roles:
+    - common
+

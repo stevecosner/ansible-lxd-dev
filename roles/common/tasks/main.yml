@@ -1,0 +1,75 @@
+# We are using Ubuntu Xenial.  You can probably use a newer version but have not tested that here.
+# Delegate to server name must match name in hosts file and under the start a new container section below.
+# When copying files from a directory like below, you must update the path depending where you downloaded the folder.
+
+
+---
+
+- name: Create a started container
+  lxd_container:
+    name: "{{ host }}"
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://images.linuxcontainers.org
+      protocol: lxd
+      alias: ubuntu/xenial/amd64
+    profiles: ["default"]
+    wait_for_ipv4_addresses: true
+    timeout: 600
+
+###############################################
+
+# Run updates
+
+- name: apt update   
+  delegate_to: "{{ host }}"   
+  raw: apt update
+
+
+# Add a webserver
+
+- name: install nginx
+  delegate_to: "{{ host }}"
+  raw: apt install nginx -y
+
+- name: install git
+  delegate_to: "{{ host }}"
+  raw: apt install git -y
+
+- name: copy files
+  delegate_to: "{{ host }}"
+  raw: git clone https://github.com/BlackrockDigital/startbootstrap-landing-page.git
+
+- name: move files
+  delegate_to: "{{ host }}"
+  raw: cp -r startbootstrap-landing-page/. /usr/share/nginx/html
+
+# Add a user with ssh key and no password sudo priviledges 
+
+- name: install python   
+  delegate_to: "{{ host }}"   
+  raw: apt install python -y
+
+
+
+- name: Add the user 'matt' with a bash shell, appending the group sudo
+  delegate_to: "{{ host }}"
+  user:
+    name: matt
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+
+- name: Set authorized key taken from file
+  delegate_to: "{{ host }}"
+  authorized_key:
+    user: matt
+    state: present
+    key: "{{ lookup('file', '/home/steve/.ssh/idrsa.pub') }}"
+
+
+- name: Add no pass
+  delegate_to: "{{ host }}"
+  raw: echo "matt ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
