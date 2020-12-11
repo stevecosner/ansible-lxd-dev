@@ -1,0 +1,14 @@
+---
+
+- name: Centos8 LXD configs
+
+  hosts: fair-insect
+  connection: local
+ #  become: yes
+  remote_user: root
+  
+  roles:
+#    - centos8-pull
+#    - centos8-add-user
+    - centos8-web-server
+

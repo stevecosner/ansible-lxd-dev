@@ -1,0 +1,14 @@
+---
+
+- name: Ubuntu LXD configs
+
+  hosts: testweb2
+  connection: local
+ #  become: yes
+  remote_user: root
+  
+  roles:
+    - ubuntu-pull
+    - ubuntu-add-user
+    - ubuntu-web-server
+

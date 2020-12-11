@@ -1,0 +1,27 @@
+# Add a user with ssh key and no password sudo priviledges
+
+- name: install python
+  delegate_to: "centos8-1"
+  raw: apt install python -y
+
+
+
+- name: Add the user 'matt' with a bash shell, appending the group sudo
+  delegate_to: "{{ host }}"
+  user:
+    name: matt
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+
+- name: Set authorized key taken from file
+  delegate_to: "{{ host }}"
+  authorized_key:
+    user: matt
+    state: present
+    key: "{{ lookup('file', '/home/steve/.ssh/authorized_keys') }}"
+
+
+- name: Add no pass
+  delegate_to: "{{ host }}"
+  raw: echo "matt ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
